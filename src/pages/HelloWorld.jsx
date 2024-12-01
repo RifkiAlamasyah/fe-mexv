@@ -1,11 +1,13 @@
 // src/pages/HelloWorld.js
 import React from "react";
 import { Link } from "react-router-dom";
+import Template from "../components/Template";
 
 const HelloWorld = () => {
   const paramValue = "HelloReact";
 
   return (
+    <Template>
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <h1 className="text-4xl font-bold mb-4 text-blue-600">Hello, World!</h1>
       <p className="text-lg mb-6">Selamat datang di halaman Hello World</p>
@@ -16,6 +18,7 @@ const HelloWorld = () => {
         Go to About Me
       </Link>
     </div>
+    </Template>
   );
 };
 
