@@ -8,9 +8,9 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
+      <Route path="/about/:name" element={<About />} />
     </Routes>
   );
 };
 
-export default AppRoutes;
+export default AppRoutes; 
