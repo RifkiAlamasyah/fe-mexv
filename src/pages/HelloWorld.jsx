@@ -8,7 +8,7 @@ const HelloWorld = () => {
 
   return (
     <Template>
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+    <div className="px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
       <h1 className="text-4xl font-bold mb-4 text-blue-600">Hello, World</h1>
       <p className="text-lg mb-6">Selamat datang di halaman Hello World</p>
       <Link
