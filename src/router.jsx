@@ -5,6 +5,7 @@ import Home from "./pages/HelloWorld";
 import About from "./pages/AboutMe";
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register";
+import Dashboard from "./pages/admin/dashboard";
 
 const AppRoutes = () => {
   return (
@@ -13,6 +14,7 @@ const AppRoutes = () => {
       <Route path="/about/:name" element={<About />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element = {<Dashboard />} />
     </Routes>
   );
 };
