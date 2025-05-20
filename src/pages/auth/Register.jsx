@@ -3,7 +3,10 @@ import Template from "../../components/Template";
 import axios from "axios";
 import ModalConfirmation from "../../components/atoms/ModalConfirmation";
 import ModalAfterConfirmation from "../../components/atoms/ModalAfterConfirmation";
+import FlashMessage from "../../components/atoms/FlashMessage";
 import { NavLink, useNavigate } from "react-router-dom"; 
+import { useDispatch, useSelector } from "react-redux";
+import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -27,6 +30,8 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const dispatch = useDispatch();
+  const flashMessage = useSelector(state => state.utility.flashMessage);
 
   const handleBlur = (e) => {
     const { name } = e.target;
@@ -92,9 +97,11 @@ const Register = () => {
         resultMessage: res.message,
         isModalConfirmOpen: false,
       }));
-      //saya ingin menyampaikan selamat user berhasil di daftar kan seperti flash message .. buat di halaman login nya 
+        dispatch(setFlashMessage({ title: "Selamat Data Berhasil di Daftarkan", subTitle :"Silahkan Lakukan Login", type :"success" }));
 
-      navigate("/login");
+        setTimeout(() => dispatch(clearFlashMessage()), 5000); // auto clear 5 detik
+
+        navigate("/login");
     } catch (error) {
       setState((prev) => ({
         ...prev,
@@ -103,6 +110,9 @@ const Register = () => {
         resultMessage: "Terjadi kesalahan saat menghubungi server.",
         isModalConfirmOpen: false,
       }));
+      dispatch(setFlashMessage({title: "Gagal Melakukan Pendaftaran", subTitle : "Silahkan Chek kembali data-data anda", type:"error"}));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => dispatch(clearFlashMessage()), 5000);
       setErrors(error.response.data.data)
     }
   };
@@ -122,6 +132,14 @@ const Register = () => {
         message={state.resultMessage}
       />
       <div className="px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
+        {flashMessage.type == "error" && (
+            <FlashMessage
+              title ={flashMessage.title}
+              subTitle = {flashMessage.subTitle}
+              type = {flashMessage.type}
+            />
+          )
+        }
         <div className="grid grid-cols-2 gap-4">
           <h1 className="text-center">Gambar disini</h1>
           <section className="bg-white dark:bg-gray-900 rounded p-5">
@@ -307,21 +325,23 @@ const Register = () => {
                 </div>
                 <div className="mb-3 w-full">
                   <div className="text-center mb-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (Object.keys(errors).length === 0) {
-                          setState({
-                            ...state,
-                            modal_message: "Apa kamu yakin data ini sudah benar?",
-                            isModalConfirmOpen: true,
-                          });
-                        }
-                      }}
-                      className="w-50 px-5 py-3 rounded-md text-white bg-blue-600"
-                    >
-                      Create an account
-                    </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (Object.keys(errors).length === 0 ) {
+                        setState({
+                          ...state,
+                          modal_message: "Apa kamu yakin data ini sudah benar?",
+                          isModalConfirmOpen: true,
+                        });
+                      }
+                    }}
+                    className={`w-50 px-5 py-3 rounded-md ${
+                      Object.keys(errors).length === 0 ? 'bg-blue-600 text-white' : 'bg-gray-400 text-black'
+                    }`}
+                  >
+                    Create an account
+                  </button>
                   </div>
                 </div>
               </form>
