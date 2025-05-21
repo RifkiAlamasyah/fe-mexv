@@ -2,17 +2,35 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Template from "../../components/Template";
 import { NavLink, useNavigate } from "react-router-dom"; 
+import FlashMessage from "../../components/atoms/FlashMessage";
+import { useDispatch, useSelector } from "react-redux";
+import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
+
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const[message, setMessage] = useState("");
+  const flashMessage = useSelector(state => state.utility.flashMessage);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+useEffect(() => {
+    if (flashMessage.type !== "") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      const timer = setTimeout(() => {
+        dispatch(clearFlashMessage());
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [flashMessage, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:5000/api/login", {
+      const response = await axios.post("http://localhost:6960/api/login", {
         username,
         password,
       });
@@ -28,9 +46,18 @@ const Login = () => {
   return (
     <Template>
       <div className="px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
+          {flashMessage.type !== "" && (
+            <FlashMessage
+              title ={flashMessage.title}
+              subTitle = {flashMessage.subTitle}
+              type = {flashMessage.type}
+            />
+          )
+        }
         <div className="grid grid-cols-2 gap-4">
           <div className="p-5 border border-2 rounded m-auto bg-gray-700">
-            <img src="./public/img/banner/login.jpeg" alt="" width={500}/>
+            {/* <img src="./public/img/banner/login.jpeg" alt="" width={500}/> */}
+            Gambar Disini
           </div>
           <section className="bg-gray-50 dark:bg-gray-900">
             <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">

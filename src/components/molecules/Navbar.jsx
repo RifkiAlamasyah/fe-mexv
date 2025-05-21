@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";  // Ensure NavLink is imported
 import axios from "axios";
+import api from "../../api/axios";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false); // State for toggling menu
@@ -11,24 +12,17 @@ const Navbar = () => {
   };
 
   const logout = async () => {
-    console.log("logged out");
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
-    console.log(token)
-    console.log("PASS")
     if (token) {
       try {
-        // Call backend to delete the token from refresh-token table using Axios
-        const response = await axios.post("http://localhost:5000/api/logout", { token });
-        console.log(response)
-        if(response.data.status == "success") {
+        await api.post("/api/logout");
+        
+        // Hapus token
+        sessionStorage.removeItem("token");
 
-        // Clear the token from localStorage
-        localStorage.removeItem("token");
-
-        // Redirect user to the login page
+        // Redirect ke login
         navigate("/login");
-        }
       } catch (error) {
         console.error("Error logging out:", error);
       }
@@ -59,7 +53,7 @@ const Navbar = () => {
             </li>
             <li>
               {/* Show 'Logout' if the token exists in localStorage */}
-              {localStorage.getItem("token") ? (
+              {sessionStorage.getItem("token") ? (
                 <button onClick={logout} className="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100">Logout</button>
               ) : (
                 <NavLink to="/login" className="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100">Login</NavLink>
