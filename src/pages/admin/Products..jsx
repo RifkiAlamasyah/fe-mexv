@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Template from "../../components/Template";
+import FlashMessage from "../../components/atoms/FlashMessage";
+import { useDispatch, useSelector } from "react-redux";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const flashMessage = useSelector(state => state.utility.flashMessage);
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -46,6 +48,14 @@ const Products = () => {
       <div className="flex">
         <Sidebar />
         <div className="flex-1 px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
+          {flashMessage.type !== "" && (
+            <FlashMessage
+              title ={flashMessage.title}
+              subTitle = {flashMessage.subTitle}
+              type = {flashMessage.type}
+            />
+          )
+        }
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-green-600">Product List</h1>
             <Link 
