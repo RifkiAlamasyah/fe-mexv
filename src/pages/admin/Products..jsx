@@ -4,8 +4,8 @@ import Sidebar from "../../components/Sidebar";
 import Template from "../../components/Template";
 import FlashMessage from "../../components/atoms/FlashMessage";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
 import Swal from 'sweetalert2';
+import api from "../../api/axios";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -26,7 +26,7 @@ const Products = () => {
       if (searchParams.name) params.append('nama_product', searchParams.name);
       if (searchParams.code) params.append('kode_product', searchParams.code);
       
-      const { data } = await axios.get(`http://localhost:6960/api/products?${params.toString()}`);
+      const { data } = await api.get(`http://localhost:6960/api/products?${params.toString()}`);
       
       if (data.rc === "00") {
         setProducts(data.data);
@@ -62,7 +62,7 @@ const Products = () => {
 
     if (result.isConfirmed) {
       try {
-        const { data } = await axios.delete(`http://localhost:6960/api/products/${id}`);
+        const { data } = await api.delete(`http://localhost:6960/api/products/${id}`);
         if (data.rc === "00") {
           // Refresh the list after deletion
           fetchProducts(searchTerm);

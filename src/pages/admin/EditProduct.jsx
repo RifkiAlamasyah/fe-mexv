@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Template from "../../components/Template";
-import axios from "axios";
 import Swal from 'sweetalert2';
+import api from "../../api/axios";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -27,7 +27,7 @@ const EditProduct = () => {
 
   const fetchProduct = async () => {
     try {
-      const { data } = await axios.get(`http://localhost:6960/api/products?id=${id}`);
+      const { data } = await api.get(`http://localhost:6960/api/products?id=${id}`);
       if (data.rc === "00") {
         setFormData({
           kode_product: data.data[0].kode_product,
@@ -107,7 +107,7 @@ const EditProduct = () => {
     }
 
     try {
-      const { data } = await axios.put(
+      const { data } = await api.put(
         `http://localhost:6960/api/products/${id}`,
         formDataToSend,
         {

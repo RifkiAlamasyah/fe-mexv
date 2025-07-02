@@ -1,61 +1,66 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:6960",  // ganti sesuai backend kamu
+  baseURL: "http://localhost:6960",
 });
 
-// Pasang token di setiap request (kalau ada)
+// Request interceptor - add Bearer token
 api.interceptors.request.use(config => {
   const token = sessionStorage.getItem("token");
   if (token) {
-    config.headers.Authorization = `${token}`;
+    config.headers.Authorization = `Bearer ${token}`; // Fixed: Add Bearer prefix
   }
   return config;
+}, error => {
+  return Promise.reject(error);
 });
 
-// Handle response error 401 (token expired)
+// Response interceptor - handle token refresh
 api.interceptors.response.use(
-  res => res,
+  response => response,
   async error => {
     const originalRequest = error.config;
-
+    
+    // Only handle 401 errors
     if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log("masuk")
       originalRequest._retry = true;
 
-      const refreshToken = sessionStorage.getItem("refresh_token");
+      // Case 1: Token expired - try to get new token using current token as refresh token
+      if (error.response.data?.error === "Token expired") {
+        try {
+          const currentToken = sessionStorage.getItem("token");
+          
+          if (!currentToken) {
+            throw new Error("No token available");
+          }
+          
+          // Try to refresh using the current token
+          const res = await axios.post(`${api.defaults.baseURL}/api/login`, {
+            token: currentToken
+          });
 
-      if (!refreshToken) {
-        // Kalau gak ada refresh token, redirect ke login
-        window.location.href = "/login";
-        return Promise.reject(error);
+          if (res.data.token) {
+            const newToken = res.data.token;
+            sessionStorage.setItem("token", newToken);
+            
+            // Update the header for retry
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            
+            return api(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error("Refresh failed:", refreshError);
+        }
       }
-
-      // Kirim request refresh token
-      try {
-        const res = await axios.post("http://localhost:6960/api/refresh-token", {
-          refresh_token: refreshToken,
-        });
-
-        const newToken = res.data.token;
-        const newRefreshToken = res.data.refresh_token;
-
-        // Simpan token baru ke sessionStorage
-        sessionStorage.setItem("token", newToken);
-        sessionStorage.setItem("refresh_token", newRefreshToken);
-
-        // Update header authorization untuk request berikutnya
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-        // Ulangi request yang gagal
-        return api(originalRequest);
-      } catch (err) {
-        // Kalau refresh token gagal, logout dan redirect login
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("refresh_token");
-        window.location.href = "/login";
-        return Promise.reject(err);
-      }
+      
+      // Case 2: Any 401 error - clear storage and redirect
+      sessionStorage.removeItem("token");
+      window.location.href = "/login";
+      return Promise.reject(error);
     }
+
+
 
     return Promise.reject(error);
   }
