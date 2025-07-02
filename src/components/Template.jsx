@@ -7,8 +7,8 @@ import Footer from './molecules/Footer';
 const Template = ({ children }) => {
     return (
         <div>
-            <Navbar/>
-            <main>{children}</main>
+            <Navbar />
+            <main className='pt-[50px]'>{children}</main>
             <Footer />
         </div>
     );
