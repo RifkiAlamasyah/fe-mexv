@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Template from "../../components/Template";
-import ModalConfirmation from "../../components/atoms/ModalConfirmation";
-import ModalAfterConfirmation from "../../components/atoms/ModalAfterConfirmation";
 import { useDispatch, useSelector } from "react-redux";
 import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
 import axios from "axios";
+import Swal from 'sweetalert2';
 
 const CreateProduct = () => {
   const navigate = useNavigate();
@@ -23,8 +22,6 @@ const CreateProduct = () => {
   const [state, setState] = useState({
     previewImage: null,
     isLoading: false,
-    ModalConfirmation: false,
-    ModalAfterConfirmation: false,
   });
 
   const handleChange = (e) => {
@@ -48,6 +45,22 @@ const CreateProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Show confirmation dialog
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to create this product?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, create it!'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     setState((prev) => ({ ...prev, isLoading: true }));
 
     const formDataToSend = new FormData();
@@ -66,26 +79,40 @@ const CreateProduct = () => {
         formDataToSend
       );
       const result = await response.data;
+      
       if (result.rc === "00") {
-        dispatch(setFlashMessage({ title: "Product Berhasil Di Tambahkan", type :"success" }));
-        setTimeout(() => dispatch(clearFlashMessage()), 5000); 
+        await Swal.fire({
+          title: 'Success!',
+          text: 'Product has been created successfully',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+        dispatch(setFlashMessage({ 
+          title: "Product Berhasil Di Tambahkan", 
+          type: "success" 
+        }));
         navigate("/admin/products");
+      } else {
+        Swal.fire(
+          'Error!',
+          'Failed to create product',
+          'error'
+        );
       }
     } catch (error) {
       console.error("Error creating product:", error);
+      Swal.fire(
+        'Error!',
+        'An error occurred while creating the product',
+        'error'
+      );
     } finally {
-      setState((prev) => ({ ...prev, isLoading: false, ModalAfterConfirmation: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
   return (
     <Template>
-      <ModalConfirmation
-        isOpen={state.isModalConfirmOpen}
-        onClose={() => setState({ ...state, isModalConfirmOpen: false })}
-        onConfirm={handleSubmit}
-        message={state.modal_message}
-      />
       <div className="flex">
         <Sidebar />
         <div className="flex-1 px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
@@ -93,108 +120,99 @@ const CreateProduct = () => {
             Create New Product
           </h1>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault(); // <- cegah reload halaman
-              setState((prevState) => ({
-                ...prevState,
-                modal_message: "Apa kamu yakin data ini sudah benar?",
-                isModalConfirmOpen: true,
-              }));
-            }}
-            className="bg-white p-6 rounded shadow"
-          >
-            {/* Form fields same as before */}
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Code
-              </label>
-              <input
-                type="text"
-                name="kode_product"
-                value={formData.kode_product}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Code
+                </label>
+                <input
+                  type="text"
+                  name="kode_product"
+                  value={formData.kode_product}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Name
-              </label>
-              <input
-                type="text"
-                name="nama_product"
-                value={formData.nama_product}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Name
+                </label>
+                <input
+                  type="text"
+                  name="nama_product"
+                  value={formData.nama_product}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price
-              </label>
-              <input
-                type="number"
-                name="harga_product"
-                value={formData.harga_product}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price
+                </label>
+                <input
+                  type="number"
+                  name="harga_product"
+                  value={formData.harga_product}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Discount (%)
-              </label>
-              <input
-                type="number"
-                name="discount_product"
-                value={formData.discount_product}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                min="0"
-                max="100"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Discount (%)
+                </label>
+                <input
+                  type="number"
+                  name="discount_product"
+                  value={formData.discount_product}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  min="0"
+                  max="100"
+                />
+              </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                name="deskripsi_product"
-                value={formData.deskripsi_product}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                rows="3"
-              />
-            </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  name="deskripsi_product"
+                  value={formData.deskripsi_product}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded"
+                  rows="3"
+                />
+              </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Image
-              </label>
-              <input
-                type="file"
-                name="gambar_product"
-                onChange={handleImageChange}
-                className="w-full p-2 border rounded"
-                accept="image/*"
-              />
-              {state.previewImage && (
-                <div className="mt-2">
-                  <img
-                    src={state.previewImage}
-                    alt="Preview"
-                    className="h-32 object-contain border rounded"
-                  />
-                </div>
-              )}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Image
+                </label>
+                <input
+                  type="file"
+                  name="gambar_product"
+                  onChange={handleImageChange}
+                  className="w-full p-2 border rounded"
+                  accept="image/*"
+                />
+                {state.previewImage && (
+                  <div className="mt-2">
+                    <img
+                      src={state.previewImage}
+                      alt="Preview"
+                      className="h-32 object-contain border rounded"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
               <button

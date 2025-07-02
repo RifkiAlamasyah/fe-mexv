@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Template from "../../components/Template";
 import axios from "axios";
+import Swal from 'sweetalert2';
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -24,6 +25,35 @@ const EditProduct = () => {
     fetchProduct();
   }, [id]);
 
+  const fetchProduct = async () => {
+    try {
+      const { data } = await axios.get(`http://localhost:6960/api/products?id=${id}`);
+      if (data.rc === "00") {
+        setFormData({
+          kode_product: data.data[0].kode_product,
+          nama_product: data.data[0].nama_product,
+          harga_product: data.data[0].harga_product,
+          deskripsi_product: data.data[0].deskripsi_product,
+          discount_product: data.data[0].discount_product || '0'
+        });
+        if (data.data[0].gambar_url) {
+          setPreviewImage(data.data[0].gambar_url);
+          setOriginalImage(data.data[0].gambar_url);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Failed to load product data',
+        confirmButtonColor: '#3085d6',
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -31,29 +61,6 @@ const EditProduct = () => {
       [name]: value
     }));
   };
-
-   const fetchProduct = async () => {
-      try {
-        const response = await axios(`http://localhost:6960/api/products?id=${id}`);
-        if (response.data.rc === "00") {
-          setFormData({
-            kode_product: response.data.data[0].kode_product,
-            nama_product: response.data.data[0].nama_product,
-            harga_product: response.data.data[0].harga_product,
-            deskripsi_product: response.data.data[0].deskripsi_product,
-            discount_product: response.data.data[0].discount_product || '0'
-          });
-          if (response.data.data[0].gambar_url) {
-            setPreviewImage(response.data.data[0].gambar_url);
-            setOriginalImage(response.data.data[0].gambar_url);
-          } 
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      } finally {
-        setIsFetching(false);
-      }
-    };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -64,7 +71,6 @@ const EditProduct = () => {
       }));
       setPreviewImage(URL.createObjectURL(file));
     } else {
-      // If user cancels file selection, revert to original image
       setPreviewImage(originalImage);
       setFormData(prev => ({
         ...prev,
@@ -75,6 +81,19 @@ const EditProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const { isConfirmed } = await Swal.fire({
+      title: 'Update Product?',
+      text: "Are you sure you want to update this product?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, update it!'
+    });
+
+    if (!isConfirmed) return;
+
     setIsLoading(true);
 
     const formDataToSend = new FormData();
@@ -88,17 +107,36 @@ const EditProduct = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:6960/api/products/${id}`, {
-        method: 'PUT',
-        body: formDataToSend
-      });
+      const { data } = await axios.put(
+        `http://localhost:6960/api/products/${id}`,
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
 
-      const result = await response.json();
-      if (result.rc === "00") {
+      if (data.rc === "00") {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Updated!',
+          text: 'Product has been updated successfully',
+          showConfirmButton: false,
+          timer: 1500
+        });
         navigate('/admin/products');
+      } else {
+        throw new Error(data.message || 'Failed to update product');
       }
     } catch (error) {
       console.error("Error updating product:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: error.message || 'Failed to update product',
+        confirmButtonColor: '#3085d6',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -241,7 +279,7 @@ const EditProduct = () => {
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => navigate('/products')}
+                onClick={() => navigate('/admin/products')}
                 className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
               >
                 Cancel
@@ -251,7 +289,12 @@ const EditProduct = () => {
                 disabled={isLoading}
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-400"
               >
-                {isLoading ? 'Updating...' : 'Update Product'}
+                {isLoading ? (
+                  <>
+                    <span className="inline-block animate-spin mr-2">↻</span>
+                    Updating...
+                  </>
+                ) : 'Update Product'}
               </button>
             </div>
           </form>
