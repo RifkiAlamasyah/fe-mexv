@@ -10,27 +10,42 @@ import Swal from 'sweetalert2';
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState({
+    name: '',
+    code: ''
+  });
+  const [isSearching, setIsSearching] = useState(false);
   const flashMessage = useSelector(state => state.utility.flashMessage);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data } = await axios.get('http://localhost:6960/api/products');
-        if (data.rc === "00") {
-          setProducts(data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        Swal.fire(
-          'Error!',
-          'Failed to load products',
-          'error'
-        );
-      } finally {
-        setLoading(false);
+  // Fetch all products or search products
+  const fetchProducts = async (searchParams = {}) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      
+      if (searchParams.name) params.append('nama_product', searchParams.name);
+      if (searchParams.code) params.append('kode_product', searchParams.code);
+      
+      const { data } = await axios.get(`http://localhost:6960/api/products?${params.toString()}`);
+      
+      if (data.rc === "00") {
+        setProducts(data.data);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      Swal.fire(
+        'Error!',
+        'Failed to load products',
+        'error'
+      );
+    } finally {
+      setLoading(false);
+      setIsSearching(false);
+    }
+  };
 
+  // Initial load
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -49,7 +64,8 @@ const Products = () => {
       try {
         const { data } = await axios.delete(`http://localhost:6960/api/products/${id}`);
         if (data.rc === "00") {
-          setProducts(products.filter(product => product.id !== id));
+          // Refresh the list after deletion
+          fetchProducts(searchTerm);
           Swal.fire(
             'Deleted!',
             'Your product has been deleted.',
@@ -83,10 +99,29 @@ const Products = () => {
       showCloseButton: true,
       width: '80%',
       padding: '0',
-      imageWidth: '50%',
+      imageWidth: '100%',
       imageHeight: 'auto',
       grow: 'fullscreen'
     });
+  };
+
+  const handleSearchChange = (e) => {
+    const { name, value } = e.target;
+    setSearchTerm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setIsSearching(true);
+    fetchProducts(searchTerm);
+  };
+
+  const handleResetSearch = () => {
+    setSearchTerm({ name: '', code: '' });
+    fetchProducts(); // Fetch all products
   };
 
   return (
@@ -111,6 +146,61 @@ const Products = () => {
             </Link>
           </div>
 
+          {/* Search Filters with Button */}
+          <div className="bg-white p-4 rounded shadow mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-gray-700">Search Products</h2>
+            <form onSubmit={handleSearchSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={searchTerm.name}
+                    onChange={handleSearchChange}
+                    placeholder="Product name..."
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Code</label>
+                  <input
+                    type="text"
+                    name="code"
+                    value={searchTerm.code}
+                    onChange={handleSearchChange}
+                    placeholder="Product code..."
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+                <div className="flex items-end space-x-2">
+                  <button
+                    type="submit"
+                    disabled={isSearching}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-400 flex items-center"
+                  >
+                    {isSearching ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Searching...
+                      </>
+                    ) : 'Search'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetSearch}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
@@ -122,46 +212,57 @@ const Products = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
-                    <tr key={product.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {product.gambar_url && (
-                          <img 
-                            src={product.gambar_url} 
-                            alt={product.nama_product} 
-                            className="h-10 w-10 rounded-full object-cover cursor-pointer hover:opacity-75 transition-opacity"
-                            onClick={() => showImagePreview(product.gambar_url, product.nama_product)}
-                          />
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{product.nama_product}</div>
-                        <div className="text-sm text-gray-500">{product.kode_product}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        Rp {product.harga_product}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link
-                          to={`/admin/products/edit/${product.id}`}
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
+                  {products.length > 0 ? (
+                    products.map((product) => (
+                      <tr key={product.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {product.gambar_url && (
+                            <img 
+                              src={product.gambar_url} 
+                              alt={product.nama_product} 
+                              className="h-10 w-10 rounded-full object-cover cursor-pointer hover:opacity-75 transition-opacity"
+                              onClick={() => showImagePreview(product.gambar_url, product.nama_product)}
+                            />
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{product.nama_product}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{product.kode_product}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          Rp {product.harga_product}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <Link
+                            to={`/admin/products/edit/${product.id}`}
+                            className="text-indigo-600 hover:text-indigo-900 mr-3"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(product.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                        {isSearching ? 'Searching...' : 'No products found'}
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
