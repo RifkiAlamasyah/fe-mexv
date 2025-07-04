@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import Template from "../../components/Template";
 import axios from "axios";
-import ModalConfirmation from "../../components/atoms/ModalConfirmation";
-import ModalAfterConfirmation from "../../components/atoms/ModalAfterConfirmation";
 import FlashMessage from "../../components/atoms/FlashMessage";
-import { NavLink, useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom"; 
 import { useDispatch, useSelector } from "react-redux";
 import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
+import Swal from 'sweetalert2';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -18,14 +17,6 @@ const Register = () => {
     username: "",
     password: "",
     confirmPassword: "",
-  });
-
-  const [state, setState] = useState({
-    modal_message: "",
-    isModalConfirmOpen: false,
-    isModalAfterConfirmOpen: false,
-    resultMessage: "",
-    resultStatus: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -47,12 +38,11 @@ const Register = () => {
   const validateField = (name, value) => {
     const newErrors = { ...errors };
 
-    // Validasi umum: jika value kosong, beri error
-      if (value.trim() === "") {
-        newErrors[name] = "Field Wajib diisi";
-      } else {
-        delete newErrors[name]; // hapus error kalau sudah diisi
-      }
+    if (value.trim() === "") {
+      newErrors[name] = "Field Wajib diisi";
+    } else {
+      delete newErrors[name];
+    }
 
     if (name === "telp") {
       if (!/^\d{10,12}$/.test(value)) {
@@ -64,16 +54,31 @@ const Register = () => {
 
     const password = name === "password" ? value : formData.password;
     const confirmPassword = name === "confirmPassword" ? value : formData.confirmPassword;
-    console.log(password)
 
     if (password !== confirmPassword && confirmPassword !== "") {
       newErrors.password = "Password dan Confirm Password tidak sama!";
-      console.log(newErrors)
     } else {
       delete newErrors.password;
     }
 
     setErrors(newErrors);
+  };
+
+  const showConfirmation = () => {
+    Swal.fire({
+      title: 'Konfirmasi Pendaftaran',
+      text: "Apakah data yang Anda masukkan sudah benar?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Ya, daftarkan!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleSubmit();
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -90,56 +95,54 @@ const Register = () => {
       const response = await axios.post("http://localhost:6960/api/register", payload);
       const res = response.data;
 
-      setState((prev) => ({
-        ...prev,
-        isModalAfterConfirmOpen: true,
-        resultStatus: res.status,
-        resultMessage: res.message,
-        isModalConfirmOpen: false,
-      }));
-        dispatch(setFlashMessage({ title: "Selamat Data Berhasil di Daftarkan", subTitle :"Silahkan Lakukan Login", type :"success" }));
-
-        setTimeout(() => dispatch(clearFlashMessage()), 5000); // auto clear 5 detik
-
+      Swal.fire({
+        title: 'Pendaftaran Berhasil!',
+        text: res.message || 'Silahkan lakukan login',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      }).then(() => {
+        dispatch(setFlashMessage({ 
+          title: "Selamat Data Berhasil di Daftarkan", 
+          subTitle: "Silahkan Lakukan Login", 
+          type: "success" 
+        }));
+        setTimeout(() => dispatch(clearFlashMessage()), 5000);
         navigate("/login");
+      });
+
     } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isModalAfterConfirmOpen: true,
-        resultStatus: "error",
-        resultMessage: "Terjadi kesalahan saat menghubungi server.",
-        isModalConfirmOpen: false,
+      Swal.fire({
+        title: 'Pendaftaran Gagal!',
+        text: error.response?.data?.message || 'Terjadi kesalahan saat menghubungi server',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+      
+      dispatch(setFlashMessage({
+        title: "Gagal Melakukan Pendaftaran", 
+        subTitle: "Silahkan Chek kembali data-data anda", 
+        type: "error"
       }));
-      dispatch(setFlashMessage({title: "Gagal Melakukan Pendaftaran", subTitle : "Silahkan Chek kembali data-data anda", type:"error"}));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => dispatch(clearFlashMessage()), 5000);
-      setErrors(error.response.data.data)
+      
+      if (error.response?.data?.data) {
+        setErrors(error.response.data.data);
+      }
     }
   };
 
   return (
     <Template>
-      <ModalConfirmation
-        isOpen={state.isModalConfirmOpen}
-        onClose={() => setState({ ...state, isModalConfirmOpen: false })}
-        onConfirm={handleSubmit}
-        message={state.modal_message}
-      />
-      <ModalAfterConfirmation
-        isOpen={state.isModalAfterConfirmOpen}
-        onClose={() => setState({ ...state, isModalAfterConfirmOpen: false })}
-        status={state.resultStatus}
-        message={state.resultMessage}
-      />
       <div className="px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
-        {flashMessage.type == "error" && (
-            <FlashMessage
-              title ={flashMessage.title}
-              subTitle = {flashMessage.subTitle}
-              type = {flashMessage.type}
-            />
-          )
-        }
+        {flashMessage.type && (
+          <FlashMessage
+            title={flashMessage.title}
+            subTitle={flashMessage.subTitle}
+            type={flashMessage.type}
+          />
+        )}
+        
         <div className="grid grid-cols-2 gap-4">
           <h1 className="text-center">Gambar disini</h1>
           <section className="bg-white dark:bg-gray-900 rounded p-5">
@@ -147,8 +150,8 @@ const Register = () => {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white mb-4 text-center">
                Create an account 
               </h1>
-              <form action="#" onSubmit={(e) => e.preventDefault()}>
-                  <div className="mb-3">
+              <form onSubmit={(e) => e.preventDefault()}>
+                <div className="mb-3">
                   <label
                     htmlFor="nama"
                     className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -183,6 +186,7 @@ const Register = () => {
                     required=""
                     value={formData.telp}
                     onChange={handlechange}
+                    maxLength={12}
                   />
                     <p className="text-sm text-red-600 mt-1">{errors.telp || ""}</p>
                 </div>
@@ -325,23 +329,22 @@ const Register = () => {
                 </div>
                 <div className="mb-3 w-full">
                   <div className="text-center mb-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (Object.keys(errors).length === 0 ) {
-                        setState({
-                          ...state,
-                          modal_message: "Apa kamu yakin data ini sudah benar?",
-                          isModalConfirmOpen: true,
-                        });
-                      }
-                    }}
-                    className={`w-50 px-5 py-3 rounded-md ${
-                      Object.keys(errors).length === 0 ? 'bg-blue-600 text-white' : 'bg-gray-400 text-black'
-                    }`}
-                  >
-                    Create an account
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (Object.keys(errors).length === 0) {
+                          showConfirmation();
+                        }
+                      }}
+                      className={`w-50 px-5 py-3 rounded-md ${
+                        Object.keys(errors).length === 0 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'bg-gray-400 text-black cursor-not-allowed'
+                      }`}
+                      disabled={Object.keys(errors).length > 0}
+                    >
+                      Create an account
+                    </button>
                   </div>
                 </div>
               </form>

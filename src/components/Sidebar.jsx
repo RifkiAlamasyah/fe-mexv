@@ -22,7 +22,7 @@ const Sidebar = () => {
           </li>
           <li className="relative group">
             <button className="w-full flex justify-between items-center p-2 rounded hover:bg-green-700">
-              <span>Manage Products</span>
+              <span>Products</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -35,17 +35,7 @@ const Sidebar = () => {
                     `block p-2 rounded hover:bg-green-800 ${isActive ? 'bg-green-700' : ''}`
                   }
                 >
-                  All Products
-                </NavLink>
-              </li>
-              <li>
-                <NavLink 
-                  to="/products/create" 
-                  className={({ isActive }) => 
-                    `block p-2 rounded hover:bg-green-800 ${isActive ? 'bg-green-700' : ''}`
-                  }
-                >
-                  Add New Product
+                  Manage Products
                 </NavLink>
               </li>
             </ul>

@@ -4,7 +4,7 @@ import Sidebar from "../../components/Sidebar";
 import Template from "../../components/Template";
 import { useDispatch, useSelector } from "react-redux";
 import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
-import axios from "axios";
+import api from "../../api/axios";
 import Swal from 'sweetalert2';
 
 const CreateProduct = () => {
@@ -74,7 +74,7 @@ const CreateProduct = () => {
     }
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         "http://localhost:6960/api/products",
         formDataToSend
       );
@@ -91,6 +91,7 @@ const CreateProduct = () => {
           title: "Product Berhasil Di Tambahkan", 
           type: "success" 
         }));
+        setTimeout(() => dispatch(clearFlashMessage()), 5000);
         navigate("/admin/products");
       } else {
         Swal.fire(
