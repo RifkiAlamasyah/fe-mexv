@@ -10,6 +10,7 @@ import Cart from "./pages/transaction/cart";
 import Products from "./pages/admin/Products.";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
+import ProfileSettings from "./pages/auth/ProfileSettings";
 
 
 const AppRoutes = () => {
@@ -24,6 +25,7 @@ const AppRoutes = () => {
       <Route path = "/admin/products" element={<Products />} />
       <Route path="/admin/products/create" element={<CreateProduct />} />
       <Route path="/admin/products/edit/:id" element={<EditProduct />} />
+      <Route path="/profile-settings" element={<ProfileSettings />} />
     </Routes>
   );
 };
