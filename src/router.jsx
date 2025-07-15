@@ -6,11 +6,12 @@ import About from "./pages/AboutMe";
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/admin/Dashboard";
-import Cart from "./pages/transaction/cart";
+import Cart from "./pages/shop/Cart";
 import Products from "./pages/admin/Products.";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
 import ProfileSettings from "./pages/auth/ProfileSettings";
+import ProductList from "./pages/shop/ProductList";
 
 
 const AppRoutes = () => {
@@ -21,7 +22,8 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element = {<Dashboard />} />
-      <Route path = "/transaction/cart" element={<Cart />} />
+      <Route path = "/shop/cart" element={<Cart />} />
+      <Route path = "/shop/product-list" element={<ProductList />} />
       <Route path = "/admin/products" element={<Products />} />
       <Route path="/admin/products/create" element={<CreateProduct />} />
       <Route path="/admin/products/edit/:id" element={<EditProduct />} />

@@ -103,12 +103,12 @@ const Navbar = () => {
               Home
             </NavLink>
             <NavLink 
-              to="/about" 
+              to="/shop/product-list" 
               className={({ isActive }) => 
                 `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`
               }
             >
-              Store
+              Shop
             </NavLink>
             {sessionStorage.getItem("token") ? (
               <div className="relative flex items-center" ref={profileRef}>
@@ -209,7 +209,7 @@ const Navbar = () => {
             Home
           </NavLink>
           <NavLink
-            to="/about"
+            to="/shop/list-product"
             className={({ isActive }) => 
               `block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`
             }
