@@ -1,49 +1,104 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
+  const location = useLocation();
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  // Auto-open dropdown when on child routes
+  useEffect(() => {
+    if (location.pathname.startsWith("/admin/products")) {
+      setOpenDropdown("products");
+    } else {
+      setOpenDropdown(null);
+    }
+  }, [location]);
+
+  const toggleDropdown = (dropdown) => {
+    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+  };
+
+  // Custom NavLink component with consistent styling
+  const SidebarLink = ({ to, children }) => (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `block p-2 rounded transition-colors duration-200 ${
+          isActive
+            ? "bg-green-600 text-white shadow-md"
+            : "text-green-100 hover:bg-green-700 hover:text-white"
+        }`
+      }
+    >
+      {children}
+    </NavLink>
+  );
+
   return (
-    <div className="w-64 min-h-screen bg-green-800 text-white p-4">
+    <div className="w-64 min-h-screen bg-green-800 p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold">Admin Panel</h1>
+        <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
       </div>
-      
+
       <nav>
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           <li>
-            <NavLink 
-              to="/dashboard" 
-              className={({ isActive }) => 
-                `block p-2 rounded hover:bg-green-700 ${isActive ? 'bg-green-600' : ''}`
-              }
-            >
-              Dashboard
-            </NavLink>
+            <SidebarLink to="/dashboard">Dashboard</SidebarLink>
           </li>
-          <li className="relative group">
-            <button className="w-full flex justify-between items-center p-2 rounded hover:bg-green-700">
+
+          {/* Products Dropdown */}
+          <li>
+            <button
+              onClick={() => toggleDropdown("products")}
+              className={`w-full flex justify-between items-center p-2 rounded transition-colors duration-200 ${
+                openDropdown === "products" || location.pathname.startsWith("/admin/products")
+                  ? "bg-green-700 text-white"
+                  : "text-green-100 hover:bg-green-700 hover:text-white"
+              }`}
+            >
               <span>Products</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  openDropdown === "products" ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
-            <ul className="ml-4 mt-1 hidden group-hover:block bg-green-900 rounded">
-              <li>
-                <NavLink 
-                  to="/admin/products" 
-                  className={({ isActive }) => 
-                    `block p-2 rounded hover:bg-green-800 ${isActive ? 'bg-green-700' : ''}`
-                  }
-                >
-                  Manage Products
-                </NavLink>
-              </li>
-            </ul>
+
+            <div
+              className={`overflow-hidden transition-all duration-200 ${
+                openDropdown === "products" ? "max-h-40" : "max-h-0"
+              }`}
+            >
+              <ul className="ml-4 mt-1 space-y-1 py-1">
+                <li>
+                  <SidebarLink to="/admin/products">
+                    Manage Products
+                  </SidebarLink>
+                </li>
+                <li>
+                  <SidebarLink to="/admin/products/design">
+                    Product Design Display
+                  </SidebarLink>
+                </li>
+              </ul>
+            </div>
           </li>
+
+          {/* Disabled Item */}
           <li>
-            <button className="w-full text-left p-2 rounded hover:bg-green-700">
+            <span className="block p-2 rounded text-green-300 opacity-75 cursor-not-allowed">
               Sales Report (Coming Soon)
-            </button>
+            </span>
           </li>
         </ul>
       </nav>

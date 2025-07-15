@@ -88,7 +88,7 @@ const Navbar = () => {
               <svg className="h-8 w-8 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span className="hidden sm:inline">My Dashboard</span>
+              <span className="hidden sm:inline">MEXV </span>
             </NavLink>
           </div>
 
