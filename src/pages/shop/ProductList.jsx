@@ -123,12 +123,12 @@ const ProductList = () => {
                   >
                     <div className="relative h-48 overflow-hidden group">
                       <img
-                        src={product.gambar_url|| "https://via.placeholder.com/500"}
+                        src={product.gambar_url|| "https://placehold.co/500x500"}
                         alt={product.nama_product}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/500";
+                          e.target.src = "https://placehold.co/500x500";
                         }}
                       />
                       {product.category && (

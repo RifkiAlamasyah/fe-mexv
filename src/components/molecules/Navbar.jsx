@@ -10,7 +10,7 @@ const Navbar = () => {
     name: "",
     email: "",
     role: "",
-    photo_profile: "https://via.placeholder.com/150"
+    photo_profile: ""
   });
   const navigate = useNavigate();
   const profileRef = useRef(null);
@@ -30,7 +30,7 @@ const Navbar = () => {
             name: data.nama || "",
             email: data.email || "",
             role: data.role || "User",
-            photo_profile: data.photo_profile || "https://via.placeholder.com/150"
+            photo_profile: data.photo_profile || `https://ui-avatars.com/api/?name=${data.nama}&background=random`
           });
         }
       } catch (error) {
@@ -66,7 +66,7 @@ const Navbar = () => {
         setProfile({
           name: "",
           email: "",
-          photo_profile: "https://via.placeholder.com/150"
+          photo_profile: ""
         });
         navigate("/login");
       } catch (error) {
@@ -123,7 +123,7 @@ const Navbar = () => {
                 alt="User profile" 
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = "https://via.placeholder.com/150";
+                  e.target.src = "https://placehold.co/500x500";
                 }}
               />
             </button>

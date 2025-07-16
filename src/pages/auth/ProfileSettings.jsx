@@ -41,7 +41,7 @@ const ProfileSettings = () => {
             address: data.alamat || "",
             phone: data.telp || "",
             gender: data.jenis_kelamin || "",
-            photo_profile: data.photo_profile || "https://via.placeholder.com/150"
+            photo_profile: data.photo_profile || `https://ui-avatars.com/api/?name=${data.nama}&background=random`
           });
           setDetail({
             name: data.nama || "",
@@ -49,7 +49,7 @@ const ProfileSettings = () => {
             address: data.alamat || "",
             phone: data.telp || "",
             gender: data.jenis_kelamin || "",
-            photo_profile: data.photo_profile || "https://via.placeholder.com/150"
+            photo_profile: data.photo_profile || `https://ui-avatars.com/api/?name=${data.nama}&background=random`
           });
         } else {
           navigate("/login");

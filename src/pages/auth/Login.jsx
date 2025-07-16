@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Template from "../../components/Template";
-import { NavLink, useNavigate } from "react-router-dom"; 
+import { NavLink, useNavigate } from "react-router-dom";
 import FlashMessage from "../../components/atoms/FlashMessage";
 import { useDispatch, useSelector } from "react-redux";
-import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
+import {
+  setFlashMessage,
+  clearFlashMessage,
+} from "../../store/slices/utilitySlice";
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const[message, setMessage] = useState("");
-  const flashMessage = useSelector(state => state.utility.flashMessage);
+  const [message, setMessage] = useState("");
+  const flashMessage = useSelector((state) => state.utility.flashMessage);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-useEffect(() => {
+  useEffect(() => {
     if (flashMessage.type !== "") {
       window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -29,31 +33,74 @@ useEffect(() => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Clear previous messages
+    setMessage("");
+
+    // Input validation
+    if (!username.trim() || !password.trim()) {
+      setMessage("Username dan password harus diisi");
+      return;
+    }
+
     try {
+      // 1. Login request
       const response = await axios.post("http://localhost:6960/api/login", {
-        username,
-        password,
+        username: username.trim(),
+        password: password.trim(),
       });
-      setMessage(response.data.message); // Tampilkan pesan sukses
-      sessionStorage.setItem("token", response.data.token); // Simpan token ke localStorage
-      navigate("/dashboard");
+
+      // 2. Validate response
+      if (!response.data?.token) {
+        throw new Error("Invalid server response");
+      }
+
+      // 3. Store token securely
+      sessionStorage.setItem("token", response.data.token);
+
+      // 4. Decode token to get user role
+      const decodedToken = jwtDecode(response.data.token);
+
+      // Debugging: Log decoded token
+      console.log("Decoded Token:", decodedToken);
+
+
+      // 5. Redirect based on role
+      const redirectPath =
+        decodedToken.role === "admin" ? "/dashboard" : "/shop/product-list";
+
+      navigate(redirectPath);
+
+      // Optional: Show success message
+      setMessage("Login berhasil! Mengalihkan...");
     } catch (error) {
-      setMessage(
-        error.response?.data?.error || "Terjadi kesalahan saat login"
-      );
+      console.error("Login error:", error);
+
+      // Handle different error cases
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Terjadi kesalahan saat login";
+
+      setMessage(errorMessage);
+
+      // Clear sensitive data on error
+      sessionStorage.removeItem("token");
+    } finally {
+      // Clear password field for security
+      setPassword("");
     }
   };
   return (
     <Template>
       <div className="px-[32px] py-5 m-2 rounded min-h-screen bg-neutral-100">
-          {flashMessage.type !== "" && (
-            <FlashMessage
-              title ={flashMessage.title}
-              subTitle = {flashMessage.subTitle}
-              type = {flashMessage.type}
-            />
-          )
-        }
+        {flashMessage.type !== "" && (
+          <FlashMessage
+            title={flashMessage.title}
+            subTitle={flashMessage.subTitle}
+            type={flashMessage.type}
+          />
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div className="p-5 border border-2 rounded m-auto bg-gray-700">
             {/* <img src="./public/img/banner/login.jpeg" alt="" width={500}/> */}
@@ -67,7 +114,10 @@ useEffect(() => {
                     Sign in to your account
                   </h1>
                   <p className="text-red-600">{message}</p>
-                  <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+                  <form
+                    className="space-y-4 md:space-y-6"
+                    onSubmit={handleSubmit}
+                  >
                     <div>
                       <label
                         htmlFor="email"
