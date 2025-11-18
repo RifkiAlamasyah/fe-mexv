@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Template from "../../components/Template";
 import { NavLink, useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "../../components/molecules/Sidebar";
 
 const Dashboard = () => {
   const token = sessionStorage.getItem('token');

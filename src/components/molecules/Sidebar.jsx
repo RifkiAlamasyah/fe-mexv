@@ -85,11 +85,9 @@ const Sidebar = () => {
                     Manage Products
                   </SidebarLink>
                 </li>
-                <li>
-                  <SidebarLink to="/admin/products/design">
-                    Product Design Display
-                  </SidebarLink>
-                </li>
+              <li>
+                <SidebarLink to="/admin/img-product/list">Manage Product Images</SidebarLink>
+              </li>
               </ul>
             </div>
           </li>

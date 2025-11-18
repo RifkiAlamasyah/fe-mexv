@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
-import Template from "../../components/Template";
-import FlashMessage from "../../components/atoms/FlashMessage";
+import Sidebar from "../../../components/molecules/Sidebar";
+import Template from "../../../components/Template";
+import FlashMessage from "../../../components/atoms/FlashMessage";
 import { useDispatch, useSelector } from "react-redux";
 import Swal from 'sweetalert2';
-import api from "../../api/axios";
+import api from "../../../api/axios";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -145,8 +145,7 @@ const Products = () => {
               Add New Product
             </Link>
           </div>
-
-          {/* Search Filters with Button */}
+          
           <div className="bg-white p-4 rounded shadow mb-6">
             <h2 className="text-lg font-semibold mb-3 text-gray-700">Search Products</h2>
             <form onSubmit={handleSearchSubmit}>

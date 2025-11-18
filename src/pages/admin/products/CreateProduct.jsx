@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
-import Template from "../../components/Template";
+import Sidebar from "../../../components/molecules/Sidebar";
+import Template from "../../../components/Template";
 import { useDispatch, useSelector } from "react-redux";
-import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
-import api from "../../api/axios";
+import { setFlashMessage, clearFlashMessage } from "../../../store/slices/utilitySlice";
+import api from "../../../api/axios";
 import Swal from 'sweetalert2';
 
 const CreateProduct = () => {

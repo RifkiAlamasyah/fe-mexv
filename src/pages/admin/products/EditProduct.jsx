@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
-import Template from "../../components/Template";
+import Sidebar from "../../../components/molecules/Sidebar";
+import Template from "../../../components/Template";
 import Swal from 'sweetalert2';
-import api from "../../api/axios";
+import api from "../../../api/axios";
 
 const EditProduct = () => {
   const { id } = useParams();
