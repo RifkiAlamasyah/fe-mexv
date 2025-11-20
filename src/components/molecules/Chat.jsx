@@ -2,12 +2,36 @@ import React, { useState, useRef, useEffect } from "react";
 
 const Chat = ({ open, onClose }) => {
   const [messages, setMessages] = useState([
-    { from: "bot", text: "Halo, ada yang bisa dibantu?" },
+    // { from: "bot", text: "Halo, ada yang bisa dibantu?" },
   ]);
+
   const [input, setInput] = useState("");
   const msgEndRef = useRef(null);
+  const socketRef = useRef(null);
 
-  // Auto scroll saat ada pesan baru
+  // Connect WebSocket sekali saja
+  useEffect(() => {
+    socketRef.current = new WebSocket("ws://localhost:6960");
+
+    socketRef.current.onopen = () => {
+      console.log("WebSocket Connected");
+    };
+
+    socketRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log(data)
+        setMessages((prev) => [...prev, data]);
+        console.log(messages)
+      } catch {
+        console.error("Invalid WS data:", event.data);
+      }
+    };
+
+    return () => socketRef.current.close();
+  }, []);
+
+  // Auto scroll tiap pesan masuk
   useEffect(() => {
     msgEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -17,25 +41,15 @@ const Chat = ({ open, onClose }) => {
   const handleSend = () => {
     if (!input.trim()) return;
 
-    // Push pesan user
     const newMsg = { from: "user", text: input.trim() };
     setMessages((prev) => [...prev, newMsg]);
+
+    // Kirim ke WebSocket
+    socketRef.current.send(
+      JSON.stringify({ from: "user", text: input.trim() })
+    );
+
     setInput("");
-
-    var balasan 
-    if (newMsg.text == "Beni"){
-        balasan = "QA Terbaik ga tuh"
-    }else{
-        balasan = "DEV TERBAIK"
-    }
-
-    // Dummy reply setelah 1 detik
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { from: "bot", text: balasan },
-      ]);
-    }, 1000);
   };
 
   const handleKeyDown = (e) => {
@@ -59,7 +73,9 @@ const Chat = ({ open, onClose }) => {
           <p
             key={i}
             className={`p-2 rounded w-fit max-w-[75%] ${
-              msg.from === "bot" ? "bg-gray-100" : "bg-indigo-100 ml-auto"
+              msg.from === "user"
+                ? "bg-indigo-100 ml-auto"
+                : "bg-gray-100"
             }`}
           >
             {msg.text}
@@ -81,10 +97,9 @@ const Chat = ({ open, onClose }) => {
 
         <button
           onClick={handleSend}
-          className=" mb-3 rounded-full text-white hover:bg-indigo-700 active:scale-95 transition"
+          className="mb-3 rounded-full text-white hover:bg-indigo-700 active:scale-95 transition"
         >
-              <img src="/icon/send.svg" className="w-10 h-10" alt="send" />
-
+          <img src="/icon/send.svg" className="w-10 h-10" alt="send" />
         </button>
       </div>
     </div>
