@@ -4,52 +4,27 @@ import Template from "../../components/Template";
 import api from "../../api/axios";
 import Swal from "sweetalert2";
 import Pagination from "../../components/molecules/Pagination";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts } from "../../store/slices/productSlice";
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
-  // 🔥 STATE PAGINATION (WAJIB)
-  const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-  });
+  const dispatch = useDispatch();
+
+  const {
+      products,
+      pagination,
+      page,
+      loading,
+    } = useSelector((state) => state.product);
 
   const navigate = useNavigate();
   const token = sessionStorage.getItem("token");
-
-    const fetchProducts = async (pageNumber = 1) => {
-    try {
-      setLoading(true);
-
-      const { data } = await api.get(
-        `/api/products?page=${pageNumber}`
-      );
-
-      if (data.rc === "00") {
-        setProducts(data.data);
-
-        // 🔥 SINGLE SOURCE OF TRUTH
-        setPage(pageNumber);
-
-        // pagination hanya untuk totalPages
-        setPagination((prev) => ({
-          ...prev,
-          totalPages: data.pagination.totalPages,
-        }));
-      }
-    } catch (error) {
-      Swal.fire("Error!", "Failed to load products", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProducts(1);
-  }, []);
+      dispatch(fetchProducts(1));
+    }, [dispatch]);
+
 
   const addCart = (kode) => {
     token ? navigate("/shop/cart") : navigate("/login");
@@ -139,12 +114,11 @@ const ProductList = () => {
                   </div>
                 ))}
               </div>
-
-              {/* ✅ PAGINATION */}
               <Pagination
                 page={page}
                 pagination={pagination}
-                onPageChange={fetchProducts}
+                onPageChange={(p) => dispatch(fetchProducts(p))}
+                tabs_color={'bg-blue-600'}
               />
             </>
           ) : (

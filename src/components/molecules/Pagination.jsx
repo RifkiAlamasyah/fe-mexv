@@ -1,6 +1,6 @@
 import React from "react";
 
-const Pagination = ({ page, pagination, onPageChange }) => {
+const Pagination = ({ page, pagination, onPageChange, tabs_color }) => {
   if (pagination.totalPages <= 1) return null;
 
   return (
@@ -23,7 +23,7 @@ const Pagination = ({ page, pagination, onPageChange }) => {
                 className={`px-3 py-1 border rounded
                   ${
                     page === p
-                      ? "bg-blue-500 text-white"
+                      ? `${tabs_color} text-white`
                       : "hover:bg-gray-100"
                   }`}
               >
