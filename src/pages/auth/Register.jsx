@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
 import Swal from 'sweetalert2';
+import Loading from "../../components/atoms/Loading";
 
 const Register = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nama: "",
     telp: "",
@@ -17,6 +19,7 @@ const Register = () => {
     username: "",
     password: "",
     confirmPassword: "",
+    email : ""
   });
 
   const [errors, setErrors] = useState({});
@@ -89,48 +92,65 @@ const Register = () => {
       jenis_kelamin: formData.jenis_kelamin,
       username: formData.username,
       password: formData.password,
+      email: formData.email,
     };
 
     try {
-      const response = await axios.post("http://localhost:6960/api/register", payload);
+      setLoading(true);
+
+      const response = await axios.post(
+        "http://localhost:6960/api/register",
+        payload
+      );
+
       const res = response.data;
 
       Swal.fire({
-        title: 'Pendaftaran Berhasil!',
-        text: res.message || 'Silahkan lakukan login',
-        icon: 'success',
-        confirmButtonText: 'OK'
+        title: "Pendaftaran Berhasil!",
+        text: res.message || "Silahkan lakukan login",
+        icon: "success",
+        confirmButtonText: "OK",
       }).then(() => {
-        dispatch(setFlashMessage({ 
-          title: "Selamat Data Berhasil di Daftarkan", 
-          subTitle: "Silahkan Lakukan Login", 
-          type: "success" 
-        }));
+        dispatch(
+          setFlashMessage({
+            title: "Selamat Data Berhasil di Daftarkan",
+            subTitle: "Silahkan Lakukan Login",
+            type: "success",
+          })
+        );
+
         setTimeout(() => dispatch(clearFlashMessage()), 5000);
         navigate("/login");
       });
-
     } catch (error) {
       Swal.fire({
-        title: 'Pendaftaran Gagal!',
-        text: error.response?.data?.message || 'Terjadi kesalahan saat menghubungi server',
-        icon: 'error',
-        confirmButtonText: 'OK'
+        title: "Pendaftaran Gagal!",
+        text:
+          error.response?.data?.message ||
+          "Terjadi kesalahan saat menghubungi server",
+        icon: "error",
+        confirmButtonText: "OK",
       });
-      
-      dispatch(setFlashMessage({
-        title: "Gagal Melakukan Pendaftaran", 
-        subTitle: "Silahkan Chek kembali data-data anda", 
-        type: "error"
-      }));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      dispatch(
+        setFlashMessage({
+          title: "Gagal Melakukan Pendaftaran",
+          subTitle: "Silahkan Chek kembali data-data anda",
+          type: "error",
+        })
+      );
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => dispatch(clearFlashMessage()), 5000);
-      
+
       if (error.response?.data?.data) {
         setErrors(error.response.data.data);
       }
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <Template>
@@ -189,6 +209,25 @@ const Register = () => {
                     maxLength={12}
                   />
                     <p className="text-sm text-red-600 mt-1">{errors.telp || ""}</p>
+                </div>
+                <div className="mb-3">
+                  <label
+                    htmlFor="email"
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Masukan No Telepon"
+                    required=""
+                    value={formData.email}
+                    onChange={handlechange}
+                  />
+                    <p className="text-sm text-red-600 mt-1">{errors.email || ""}</p>
                 </div>
                 <div className="mb-3">
                   <label
@@ -352,6 +391,7 @@ const Register = () => {
           </section>
         </div>
       </div>
+      <Loading show={loading} />
     </Template>
   );
 };

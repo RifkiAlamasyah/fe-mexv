@@ -9,11 +9,13 @@ import {
   clearFlashMessage,
 } from "../../store/slices/utilitySlice";
 import { jwtDecode } from "jwt-decode";
+import Loading from "../../components/atoms/Loading";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const flashMessage = useSelector((state) => state.utility.flashMessage);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -44,6 +46,7 @@ const Login = () => {
 
     try {
       // 1. Login request
+      setLoading(true);
       const response = await axios.post("http://localhost:6960/api/login", {
         username: username.trim(),
         password: password.trim(),
@@ -89,6 +92,7 @@ const Login = () => {
     } finally {
       // Clear password field for security
       setPassword("");
+      setLoading(false);
     }
   };
   return (
@@ -201,6 +205,7 @@ const Login = () => {
           </section>
         </div>
       </div>
+      <Loading show={loading} />
     </Template>
   );
 };
