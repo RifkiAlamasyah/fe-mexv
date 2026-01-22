@@ -117,7 +117,7 @@ const ProductList = () => {
               <Pagination
                 page={page}
                 pagination={pagination}
-                onPageChange={(p) => dispatch(fetchProducts(p))}
+                onPageChange={(p) =>  dispatch(fetchProducts({ page: p }))}
                 tabs_color={'bg-blue-600'}
               />
             </>

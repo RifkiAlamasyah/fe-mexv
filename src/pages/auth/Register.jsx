@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setFlashMessage, clearFlashMessage } from "../../store/slices/utilitySlice";
 import Swal from 'sweetalert2';
 import Loading from "../../components/atoms/Loading";
+import api from "../../api/axios";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -98,8 +99,8 @@ const Register = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        "http://localhost:6960/api/register",
+      const response = await api.post(
+        "/api/register",
         payload
       );
 
