@@ -259,8 +259,8 @@ const Navbar = () => {
           >
             Home
           </NavLink>
-          <NavLink
-            to="/shop/list-product"
+        <NavLink
+           to="/shop/product-list"
             className={({ isActive }) =>
               `block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                 isActive
@@ -270,7 +270,7 @@ const Navbar = () => {
             }
             onClick={() => setIsOpen(false)}
           >
-            About
+            Shop
           </NavLink>
           {sessionStorage.getItem("token") ? (
             <>
