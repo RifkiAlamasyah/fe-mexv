@@ -12,21 +12,21 @@ const Chat = ({ open, onClose }) => {
 
     const token = sessionStorage.getItem("token");
     // 🔥 Connect ke socket.io
-    socketRef.current = io("http://localhost:6960", {
-      auth: { token },
-    });
+    // socketRef.current = io("http://localhost:6960", {
+    //   auth: { token },
+    // });
 
-    socketRef.current.on("connect", () => {
-      console.log("Socket.IO Connected", socketRef.current.id);
-    });
+    // socketRef.current.on("connect", () => {
+    //   console.log("Socket.IO Connected", socketRef.current.id);
+    // });
 
-    // 🔥 Terima pesan dari server
-    socketRef.current.on("receive_message", (data) => {
-      console.log("Pesan masuk:", data);
-      setMessages((prev) => [...prev, data]);
-    });
+    // // 🔥 Terima pesan dari server
+    // socketRef.current.on("receive_message", (data) => {
+    //   console.log("Pesan masuk:", data);
+    //   setMessages((prev) => [...prev, data]);
+    // });
 
-    return () => socketRef.current.disconnect();
+    // return () => socketRef.current.disconnect();
   }, []);
 
   // Auto scroll tiap update

@@ -10,6 +10,7 @@ import {
 } from "../../store/slices/utilitySlice";
 import { jwtDecode } from "jwt-decode";
 import Loading from "../../components/atoms/Loading";
+import api from "../../api/axios";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -47,7 +48,7 @@ const Login = () => {
     try {
       // 1. Login request
       setLoading(true);
-      const response = await axios.post("http://localhost:6960/api/login", {
+      const response = await api.post("/api/login", {
         username: username.trim(),
         password: password.trim(),
       });
