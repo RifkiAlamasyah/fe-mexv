@@ -1,17 +1,22 @@
-// components/Layout.js
-import React from 'react';
-import Header from './molecules/Header';
-import Navbar from './molecules/Navbar';
-import Footer from './molecules/Footer';
+import React from "react";
+import Navbar from "./molecules/Navbar";
+import Footer from "./molecules/Footer";
+import BottomNav from "./molecules/BottomNav";
 
 const Template = ({ children }) => {
-    return (
-        <div>
-            <Navbar />
-            <main className='pt-[50px]'>{children}</main>
-            <Footer />
-        </div>
-    );
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+
+      {/* padding atas buat navbar, bawah buat bottom tab */}
+      <main className="pt-[50px] pb-16">
+        {children}
+      </main>
+
+      <Footer />
+      <BottomNav />
+    </div>
+  );
 };
 
 export default Template;
