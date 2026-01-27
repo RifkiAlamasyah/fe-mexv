@@ -3,83 +3,23 @@ import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import api from "../../api/axios";
 import Chat from "./Chat";
+import { useAuth } from "../../context/AuthContext";
+import Debug from "../atoms/Debug";
 
 const Navbar = () => {
+  const { user, loading, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    role: "",
-    photo_profile: "",
-  });
-  const navigate = useNavigate();
+  const [showChat, setShowChat] = useState(false);
   const profileRef = useRef(null);
+  const navigate = useNavigate();
+
+  if (loading) return null; // atau skeleton navbar
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
-  const [showChat, setShowChat] = useState(false);
 
-
-  // Fetch profile data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = sessionStorage.getItem("token");
-        if (token) {
-          const response = await api.get("/api/get-profile");
-          const data = response.data.data;
-          setProfile({
-            name: data.nama || "",
-            email: data.email || "",
-            role: data.role || "User",
-            photo_profile:
-              data.photo_profile ||
-              `https://ui-avatars.com/api/?name=${data.nama}&background=random`,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
-    };
-
-    if (sessionStorage.getItem("token")) {
-      fetchProfile();
-    }
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const logout = async () => {
-    const token = sessionStorage.getItem("token");
-    if (token) {
-      try {
-        await api.post("/api/logout");
-        sessionStorage.removeItem("token");
-        setProfile({
-          name: "",
-          email: "",
-          photo_profile: "",
-        });
-        navigate("/login");
-      } catch (error) {
-        console.error("Error logging out:", error);
-      }
-    }
-  };
-
+  
   return (
     <nav className="bg-white shadow-sm fixed w-full z-10">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,7 +73,7 @@ const Navbar = () => {
             >
               Shop
             </NavLink>
-            {sessionStorage.getItem("token") ? (
+            {user  ? (
               <div className="relative flex items-center" ref={profileRef}>
                 <button
                   onClick={() => setShowChat(true)}
@@ -148,7 +88,7 @@ const Navbar = () => {
                   <span className="sr-only">Open user menu</span>
                   <img
                     className="h-8 w-8 rounded-full object-cover border border-gray-200"
-                    src={profile.photo_profile}
+                    src={user?.photo_profile}
                     alt="User profile"
                     onError={(e) => {
                       e.target.onerror = null;
@@ -162,10 +102,10 @@ const Navbar = () => {
                   <div className="origin-top-right absolute right-0 top-full mt-1 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                     <div className="px-4 py-2 border-b">
                       <div className="text-sm font-medium text-gray-900 truncate">
-                        {profile.name}
+                        {user?.name}
                       </div>
                       <div className="text-xs text-gray-500 truncate">
-                        {profile.role}
+                        {user?.role}
                       </div>
                     </div>
                     <NavLink
@@ -272,18 +212,18 @@ const Navbar = () => {
           >
             Shop
           </NavLink>
-          {sessionStorage.getItem("token") ? (
+          {user ? (
             <>
               <div className="px-4 py-2 border-b">
                 <div className="text-sm font-medium text-gray-900 truncate">
-                  {profile.name}
+                  {user?.name}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
-                  {profile.email}
+                  {user?.email}
                 </div>
               </div>
               <NavLink
-                to="/profile-settings"
+              to="/profile-settings"
                 className={({ isActive }) =>
                   `block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                     isActive

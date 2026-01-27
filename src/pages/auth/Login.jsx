@@ -11,8 +11,11 @@ import {
 import { jwtDecode } from "jwt-decode";
 import Loading from "../../components/atoms/Loading";
 import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+
 
 const Login = () => {
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -33,69 +36,55 @@ const Login = () => {
     }
   }, [flashMessage, dispatch]);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear previous messages
     setMessage("");
 
-    // Input validation
     if (!username.trim() || !password.trim()) {
       setMessage("Username dan password harus diisi");
       return;
     }
 
     try {
-      // 1. Login request
       setLoading(true);
       const response = await api.post("/api/login", {
         username: username.trim(),
         password: password.trim(),
       });
 
-      // 2. Validate response
       if (!response.data?.token) {
         throw new Error("Invalid server response");
       }
 
-      // 3. Store token securely
+      // 1️⃣ simpan token
       sessionStorage.setItem("token", response.data.token);
 
-      // 4. Decode token to get user role
+      // 2️⃣ decode token
       const decodedToken = jwtDecode(response.data.token);
 
-      // Debugging: Log decoded token
-      console.log("Decoded Token:", decodedToken);
+      // 3️⃣ ⚡ update AuthContext supaya Navbar langsung tahu user login
+      login(decodedToken);
 
-
-      // 5. Redirect based on role
+      // 4️⃣ redirect sesuai role
       const redirectPath =
         decodedToken.role === "admin" ? "/dashboard" : "/shop/product-list";
-
       navigate(redirectPath);
 
-      // Optional: Show success message
       setMessage("Login berhasil! Mengalihkan...");
     } catch (error) {
       console.error("Login error:", error);
-
-      // Handle different error cases
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||
         error.message ||
         "Terjadi kesalahan saat login";
-
       setMessage(errorMessage);
-
-      // Clear sensitive data on error
       sessionStorage.removeItem("token");
     } finally {
-      // Clear password field for security
       setPassword("");
       setLoading(false);
     }
-  };
+  }
   return (
   <Template>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 flex items-center justify-center px-4">

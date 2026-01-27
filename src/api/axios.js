@@ -2,65 +2,61 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true // ⬅️ WAJIB UNTUK COOKIE
 });
 
-// Request interceptor - add Bearer token
+// ==============================
+// REQUEST INTERCEPTOR
+// ==============================
 api.interceptors.request.use(config => {
   const token = sessionStorage.getItem("token");
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`; // Fixed: Add Bearer prefix
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-}, error => {
-  return Promise.reject(error);
 });
 
-// Response interceptor - handle token refresh
+
+// ==============================
+// RESPONSE INTERCEPTOR
+// ==============================
 api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
-    
-    // Only handle 401 errors
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      console.log("masuk")
-      originalRequest._retry = true;
 
-      // Case 1: Token expired - try to get new token using current token as refresh token
-      if (error.response.data?.error === "Token expired") {
-        try {
-          const currentToken = sessionStorage.getItem("token");
-          
-          if (!currentToken) {
-            throw new Error("No token available");
-          }
-          
-          // Try to refresh using the current token
-          const res = await axios.post(`${api.defaults.baseURL}/api/login`, {
-            token: currentToken
-          });
-
-          if (res.data.token) {
-            const newToken = res.data.token;
-            sessionStorage.setItem("token", newToken);
-            
-            // Update the header for retry
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            
-            return api(originalRequest);
-          }
-        } catch (refreshError) {
-          console.error("Refresh failed:", refreshError);
-        }
-      }
-      
-      // Case 2: Any 401 error - clear storage and redirect
-      sessionStorage.removeItem("token");
-      window.location.href = "/login";
+    // ⛔ JANGAN HANDLE 401 DARI SESSION CHECK
+    if (originalRequest.url.includes("/auth/session")) {
       return Promise.reject(error);
     }
 
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
+      try {
+        // 🔑 TANYA BACKEND: SESSION MASIH ADA?
+        const res = await api.get("/auth/session");
+
+        if (res.data.loggedIn) {
+          const newToken = res.data.token;
+
+          // simpan ulang bearer
+          sessionStorage.setItem("token", newToken);
+          api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+
+          // retry request awal
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+      } catch (e) {
+        // session memang sudah mati
+      }
+
+      // 🔥 SESSION MATI TOTAL
+      sessionStorage.removeItem("token");
+      delete api.defaults.headers.common.Authorization;
+      window.location.href = "/login";
+    }
 
     return Promise.reject(error);
   }
