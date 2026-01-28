@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import {clearCart } from "../store/slices/cartSlice";
+import {useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const dispatch = useDispatch();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -36,7 +39,9 @@ export const AuthProvider = ({ children }) => {
     await api.post("/api/logout");
     setUser(null);
     sessionStorage.removeItem("token");
+    dispatch(clearCart());
     navigate("/login");
+    
 
   };
 
